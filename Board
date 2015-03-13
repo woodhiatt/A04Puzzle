@@ -198,7 +198,7 @@ public class Board {
 						x[i][j] = temp;
 						x[i][j+1] = pos;
 						result.enqueue(new Board(x));
-						
+						break;
 					}
 					
 				}
