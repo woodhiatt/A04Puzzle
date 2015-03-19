@@ -1,5 +1,3 @@
-# A04Puzzle
-8Puzzle
 /*
  * Your implementation should support all Board methods in time proportional to 
  * N² (or better) in the worst case, with the exception that isSolvable() may 
@@ -22,9 +20,9 @@ import edu.princeton.cs.introcs.StdOut;
  *
  */
 public class Board {
-	private int N;
-	private int[][] tiles;
-	private int[][] goal;
+	private final int N;
+	private final int[][] tiles;
+	private final int[][] goal;
 	
 
 	/**
@@ -38,17 +36,15 @@ public class Board {
 	 */
 	public Board(int[][] tiles) {
 		if (tiles == null) {
-			throw new java.lang.NullPointerException();
+			throw new NullPointerException();
 		}
-
-		// this is needed, commented out until isSolvable is written
-		// if (!isSolvable()) {
-		// throw new java.lang.IllegalArgumentException();
-		// }
-
 		this.N = tiles[0].length;
 		this.tiles = tiles;
 		goal = makeAGoalArray(N);
+		// this is needed, commented out until isSolvable is written
+		 if (!isSolvable()) {
+			 throw new IllegalArgumentException("Unsolvable");
+			 }
 	}
 
 	/**
@@ -144,8 +140,49 @@ public class Board {
 	 * @return true if solvable, false otherwise
 	 */
 	protected boolean isSolvable() {
+		int index = 0;
+		int inversion = 0;
+		int row = 0;
+		int[] temp = new int[N*N];
 		
+		if( N % 2 == 1){
+			for(int i = 0; i < N; i++)
+				for(int j = 0; j < N; j++){
+					temp[index] = tiles[i][j];
+					index++;
+				}
+			
+			for(int i = 0; i < temp.length; i++)
+				for(int j = i+1; j < temp.length; j++){
+					int x = temp[i];
+					int y = temp[j];
+					if((x | y) == 0) continue;
+					if(temp[i] > temp[j]) inversion++;
+				}
+			return (inversion % 2 == 0);
+		}else if(N % 2 == 0){
+			
+			for(int i = 0; i < N; i++)
+				for(int j = 0; j < N; j++){
+					temp[index] = tiles[i][j];
+					index++;
+				}
+			
+			for(int i = 0; i < temp.length; i++)
+				for(int j = i+1; j < temp.length; j++){
+					int x = temp[i];
+					int y = temp[j];
+					if((x | y) == 0){
+						row = i;
+						continue;
+					}
+					if(temp[i] > temp[j]) inversion++;
+				}
+			inversion = inversion + row;
+			return (inversion % 2 == 0);
+		}
 		return true;
+		
 	}
 
 	/*
@@ -204,14 +241,7 @@ public class Board {
 				}
 			}
 					
-		}
-					
-					
-					
-				
-				
-	
-		
+		}	
 		
 		return result;
 	}
@@ -256,7 +286,7 @@ public class Board {
 		int[][] difValues = { { 0, 15, 14, 13 }, { 12, 11, 10, 9 },
 				{ 8, 7, 6, 5 }, { 4, 3, 2, 1 } };
 		int[][] unsolvable = { { 1, 2, 3}, { 4, 5, 6 }, { 8, 7, 0 }};
-		Board myBoard = new Board(values1);
+		Board myBoard = new Board(unsolvable);
 		
 		//Board difBoard = new Board(difValues);
 		StdOut.println(myBoard);
@@ -269,7 +299,8 @@ public class Board {
 		// myBoard.hamming();
 		 //myBoard.manhattan();
 		
-		StdOut.println(myBoard.neighbors());
+		//StdOut.println(myBoard.neighbors());
+		//StdOut.println(myBoard.isSolvable());
 		 
 		
 		
