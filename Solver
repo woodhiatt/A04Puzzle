@@ -1,0 +1,150 @@
+/*
+ * To implement the A* algorithm, you must use the MinPQ data type from algs4.jar
+ * for the priority queue.
+ */
+
+package puzzle;
+
+import edu.princeton.cs.algs4.MinPQ;
+import edu.princeton.cs.algs4.Queue;
+import edu.princeton.cs.introcs.In;
+import edu.princeton.cs.introcs.StdOut;
+
+/**
+ * find a solution to the initial board
+ * 
+ * The constructor should throw a java.lang.IllegalArgumentException if the
+ * initial board is not solvable and a java.lang.NullPointerException if the
+ * initial board is null.
+ * 
+ * @param initial
+ */
+public class Solver {
+	private MinPQ<SearchNode> boards;
+	private Queue<Board> solution = new Queue<Board>();
+	private int moves = 0;
+	private static boolean isSolvable;
+	private SearchNode root;
+	private SearchNode temp;
+
+	private class SearchNode implements Comparable<SearchNode> {
+		private Board board;
+		private SearchNode previous;
+		private int priority;
+
+		SearchNode(Board board) {
+			this.board = board;
+			this.priority = priority();
+			
+			
+		}
+
+		private int priority() {
+			priority = moves + board.manhattan();
+			return priority;
+		}
+
+		@Override
+		public int compareTo(SearchNode that) {
+			if (this.priority() < that.priority()) {
+				return -1;
+			}
+			if (this.priority() > that.priority()) {
+				return +1;
+			}
+			return 0;
+		}
+	}
+
+	/**
+	 * find a solution to the initial board
+	 * 
+	 * The constructor should throw a java.lang.IllegalArgumentException if the
+	 * initial board is not solvable and a java.lang.NullPointerException if the
+	 * initial board is null.
+	 * 
+	 * @param initial
+	 */
+	public Solver(Board initial) {
+		if (initial == null) {
+			throw new java.lang.NullPointerException();
+		}
+
+		if (!initial.isSolvable()) {
+			throw new java.lang.IllegalArgumentException();
+		} else {
+			isSolvable = true;
+		}
+		
+		boards = new MinPQ<SearchNode>();
+		root = new SearchNode(initial);
+		boards.insert(root);
+		
+		 
+		temp= root;
+		
+	while(temp.board.isGoal() != true){
+		for(Board x : temp.board.neighbors()){
+			SearchNode neighbor = new SearchNode(x);
+			boards.insert(neighbor);
+			neighbor.previous = temp;
+			StdOut.println(boards.size());
+			}
+		temp = boards.delMin();
+		solution.enqueue(temp.board);	
+		}
+	
+		
+	}
+
+	/**
+	 * return min number of moves to solve the initial board, -1 if no such
+	 * solution
+	 * 
+	 * @return min number of moves to solve the board, -1 if no solution
+	 */
+	public int moves() {
+		moves++;
+		return moves;
+	}
+
+	public Iterable<Board> solution() {
+		if (isSolvable) {
+			return solution;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * read puzzle instance from stdin and print solution to stdout (in format
+	 * above)
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// create initial board from file
+		In in = new In(args[0]);
+		int N = in.readInt();
+		int[][] blocks = new int[N][N];
+		for (int i = 0; i < N; i++)
+			for (int j = 0; j < N; j++)
+				blocks[i][j] = in.readInt();
+		Board initial = new Board(blocks);
+
+		// check if puzzle is solvable; if so, solve it and output solution
+		if (initial.isSolvable()) {
+			Solver solver = new Solver(initial);
+			StdOut.println("Minimum number of moves = " + solver.moves());
+
+			for (Board board : solver.solution()) {
+				StdOut.println(board);
+			}
+		}
+
+		// if not, report unsolvable
+		else {
+			StdOut.println("Unsolvable puzzle");
+		}
+	}
+}
