@@ -34,9 +34,7 @@ public class Solver {
 
 		SearchNode(Board board) {
 			this.board = board;
-			this.priority = priority();
-			
-			
+			this.priority = priority();	
 		}
 
 		private int priority() {
@@ -79,6 +77,7 @@ public class Solver {
 		boards = new MinPQ<SearchNode>();
 		root = new SearchNode(initial);
 		boards.insert(root);
+		solution.enqueue(root.board);
 		
 		 
 		temp= root;
@@ -93,8 +92,6 @@ public class Solver {
 		temp = boards.delMin();
 		solution.enqueue(temp.board);	
 		}
-	
-		
 	}
 
 	/**
@@ -104,7 +101,7 @@ public class Solver {
 	 * @return min number of moves to solve the board, -1 if no solution
 	 */
 	public int moves() {
-		moves++;
+		moves = solution.size()-1;
 		return moves;
 	}
 
