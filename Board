@@ -6,9 +6,10 @@
 
 package puzzle;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
-import edu.princeton.cs.algs4.Queue;
+import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.introcs.StdOut;
 
 /**
@@ -23,7 +24,6 @@ public class Board {
 	private final int N;
 	private final int[][] tiles;
 	private final int[][] goal;
-	
 
 	/**
 	 * construct a board from an N-by-N array of tiles
@@ -35,16 +35,47 @@ public class Board {
 	 * @param tiles
 	 */
 	public Board(int[][] tiles) {
-		if (tiles == null) {
-			throw new NullPointerException();
-		}
-		this.N = tiles[0].length;
-		this.tiles = tiles;
+		N = tiles.length;
+		this.tiles = new int[N][N];
 		goal = makeAGoalArray(N);
-		// this is needed, commented out until isSolvable is written
-		 if (!isSolvable()) {
-			 throw new IllegalArgumentException("Unsolvable");
-			 }
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N; j++) {
+				this.tiles[i][j] = tiles[i][j];
+			}
+		}
+	}
+
+	/**
+	 * board size N
+	 * 
+	 * @return N
+	 */
+	public int size() {
+		return N;
+	}
+
+	/**
+	 * creates a board based on what the end board will look like
+	 * 
+	 * @return the actual goal board
+	 */
+	private static int[][] makeAGoalArray(int n) {
+		int[][] goal = new int[n][n];
+		int count = 1;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				if (count == n * n)
+					count = 0;
+				goal[i][j] = count++;
+
+			}
+
+		}
+		return goal;
+	}
+
+	private int[][] getGoal() {
+		return goal;
 	}
 
 	/**
@@ -56,23 +87,21 @@ public class Board {
 		int numOutOfOrder = 0;
 		int value;
 
-		for (int i = 0; i < N * N; i++) {
+		for (int i = 1; i < N * N; i++) {
 			int row = i / N;
 			int col = i % N;
 			value = tiles[row][col];
-			if(value == 0) continue;
 			if (value != i + 1) {
 				numOutOfOrder++;
 			}
 		}
-		//StdOut.println(numOutOfOrder);
 		return numOutOfOrder;
 	}
 
 	/**
 	 * return sum of Manhattan distances between blocks and goal
 	 * 
-	 * @return
+	 * @return the manhattan distance between where you are to the goal
 	 */
 	public int manhattan() {
 		int distanceSum = 0;
@@ -100,119 +129,82 @@ public class Board {
 
 			distanceSum += (Math.abs(goalRow - row) + Math.abs(goalCol - col));
 		}
-		StdOut.println(distanceSum);
 		return distanceSum;
 	}
 
-	private static int[][] makeAGoalArray(int n) {
-		int[][] goal = new int[n][n];
-		int count = 1;
-		// int[][] goal = {
-		// {1, 2, 3},
-		// {4, 5, 6},
-		// {7, 8, 0}
-		// };
-		/*for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				if (i == n - 1 && j == n - 1) {
-					goal[n - 1][n - 1] = 0;
-				} else {
-					goal[i][j] = count++;
+	/**
+	 * is this board the goal board?
+	 * 
+	 * @return true if matches, otherwise false
+	 */
+	public boolean isGoal() {
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N; j++) {
+				if (tiles[i][j] != goal[i][j]) {
+					return false;
 				}
 			}
-		}*/
-		for(int i = 0; i < n; i++)
-		{
-			for(int j = 0; j < n; j++)
-			{
-				if(count == n*n) count = 0;
-				goal[i][j]= count++;
-				
-			}
-			
 		}
-		return goal;
+		return true;
 	}
 
 	/**
-	 * is the initial board solvable?
+	 * a board obtained by exchanging two adjacent blocks in the same row
 	 * 
-	 * @return true if solvable, false otherwise
+	 * @return
 	 */
-	protected boolean isSolvable() {
-		int index = 0;
-		int inversion = 0;
-		int row = 0;
-		int[] temp = new int[N*N];
-		
-		if( N % 2 == 1){
-			for(int i = 0; i < N; i++)
-				for(int j = 0; j < N; j++){
-					temp[index] = tiles[i][j];
-					index++;
+	private Board copyWithSwitch() {
+		Board board = new Board(tiles);
+
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N - 1; j++) {
+				if (tiles[i][j] != 0 && tiles[i][j + 1] != 0) {
+					board.indexSwap(i, j, i, j + 1);
+					return board;
 				}
-			
-			for(int i = 0; i < temp.length; i++)
-				for(int j = i+1; j < temp.length; j++){
-					int x = temp[i];
-					int y = temp[j];
-					if((x | y) == 0) continue;
-					if(temp[i] > temp[j]) inversion++;
-				}
-			return (inversion % 2 == 0);
-		}else if(N % 2 == 0){
-			
-			for(int i = 0; i < N; i++)
-				for(int j = 0; j < N; j++){
-					temp[index] = tiles[i][j];
-					index++;
-				}
-			
-			for(int i = 0; i < temp.length; i++)
-				for(int j = i+1; j < temp.length; j++){
-					int x = temp[i];
-					int y = temp[j];
-					if((x | y) == 0){
-						row = i;
-						continue;
-					}
-					if(temp[i] > temp[j]) inversion++;
-				}
-			inversion = inversion + row;
-			return (inversion % 2 == 0);
+			}
 		}
+
+		return board;
+	}
+
+	/**
+	 * swaps the index for the new board
+	 * 
+	 * @param i
+	 * @param j
+	 * @param newI
+	 * @param newJ
+	 * @return
+	 */
+	private boolean indexSwap(int i, int j, int newI, int newJ) {
+		if (newI < 0 || newI >= N || newJ < 0 || newJ >= N) {
+			return false;
+		}
+		int temp = tiles[i][j];
+		tiles[i][j] = tiles[newI][newJ];
+		tiles[newI][newJ] = temp;
 		return true;
-		
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * does this board equal y Given by Sedgewick (similar to DATA)
-	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
-	public boolean equals(Object y) {
-		if (y == this) {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
 			return true;
-		} else if (y == null) {
+		if (obj == null)
 			return false;
-		} else if (y.getClass() != this.getClass()) {
+		if (getClass() != obj.getClass())
 			return false;
-		}
-
-		Board other = (Board) y;
-
-		if (other.N != this.N) {
+		Board other = (Board) obj;
+		if (N != other.N)
 			return false;
-		}
-
-		for (int i = 0; i < N; i++) {
-			if (!Arrays.equals(other.tiles[i], this.tiles[i])) {
-				return false;
-			}
-		}
-
+		if (!Arrays.deepEquals(tiles, other.tiles))
+			return false;
 		return true;
 	}
 
@@ -222,43 +214,57 @@ public class Board {
 	 * @return an Iterable of all neighboring board positions
 	 */
 	public Iterable<Board> neighbors() {
-		Queue<Board> result = new Queue<Board>();
-		
-		int x[][] = tiles;
-
-		for(int i = 0; i < N; i++){
-			for(int j = 0; j < N; j++){
-				int pos = x[i][j];
-				if( pos == 0){ 
-					if(validate(i, j+1, x) == true){
-						int temp = x[i][j+1];
-						x[i][j] = temp;
-						x[i][j+1] = pos;
-						result.enqueue(new Board(x));
-						break;
-					}
-					
+		int index0ForX = 0, index0ForY = 0;
+		boolean found = false;
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N; j++) {
+				if (tiles[i][j] == 0) {
+					index0ForX = i;
+					index0ForY = j;
+					found = true;
+					break;
 				}
 			}
-					
-		}	
-		
-		return result;
-	}
-	private boolean validate(int i, int j, int[][] x){
-		
-		if(i < 0 || i >= x.length)
-			return false;
-		if(j < 0 || j >= x.length)
-			return false;
-		else return true;
+			if (found) {
+				break;
+			}
+		}
+
+		Stack<Board> boards = new Stack<Board>();
+
+		Board board = new Board(tiles);
+		boolean isNeighbor = board.indexSwap(index0ForX, index0ForY,
+				index0ForX - 1, index0ForY);
+		if (isNeighbor) {
+			boards.push(board);
+		}
+
+		board = new Board(tiles);
+		isNeighbor = board.indexSwap(index0ForX, index0ForY, index0ForX,
+				index0ForY - 1);
+		if (isNeighbor) {
+			boards.push(board);
+		}
+
+		board = new Board(tiles);
+		isNeighbor = board.indexSwap(index0ForX, index0ForY, index0ForX + 1,
+				index0ForY);
+		if (isNeighbor) {
+			boards.push(board);
+		}
+
+		board = new Board(tiles);
+		isNeighbor = board.indexSwap(index0ForX, index0ForY, index0ForX,
+				index0ForY + 1);
+		if (isNeighbor) {
+			boards.push(board);
+		}
+
+		return boards;
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * 
-	 * return a string representation of the board Given BY Sedgewick in
-	 * Checklist
+	 * string representation of the board (non-Javadoc)
 	 * 
 	 * @see java.lang.Object#toString()
 	 */
@@ -275,6 +281,44 @@ public class Board {
 	}
 
 	/**
+	 * is the initial board solvable?
+	 * 
+	 * @return true if solvable, otherwise false
+	 */
+	public boolean isSolvable() {
+
+		int index = 0;
+		int inversion = 0;
+		int row = 0;
+		int[] temp = new int[N * N];
+
+		if (N % 2 == 1 || N % 2 == 0) {
+			for (int i = 0; i < N; i++)
+				for (int j = 0; j < N; j++) {
+					if (tiles[i][j] == 0) {
+						row = i;
+						continue;
+					}
+					temp[index] = tiles[i][j];
+					index++;
+				}
+
+			for (int i = 0; i < temp.length; i++)
+				for (int j = i + 1; j < temp.length; j++) {
+
+					if (temp[i] > temp[j])
+						inversion++;
+				}
+			if (N % 2 == 0) {
+				inversion = inversion + row;
+			}
+			return (inversion % 2 == 0);
+		}
+		return true;
+
+	}
+
+	/**
 	 * test client
 	 * 
 	 * @param args
@@ -285,30 +329,25 @@ public class Board {
 		int[][] values3 = { { 2, 3, 5 }, { 1, 0, 4 }, { 7, 8, 6 } }; // 8
 		int[][] difValues = { { 0, 15, 14, 13 }, { 12, 11, 10, 9 },
 				{ 8, 7, 6, 5 }, { 4, 3, 2, 1 } };
-		int[][] unsolvable = { { 1, 2, 3}, { 4, 5, 6 }, { 8, 7, 0 }};
-		Board myBoard = new Board(unsolvable);
-		
-		//Board difBoard = new Board(difValues);
-		StdOut.println(myBoard);
-		/*myBoard.manhattan();
-		StdOut.println("-------------");
-		StdOut.println(difBoard);
-		difBoard.manhattan();
-		StdOut.println();
-		StdOut.println(1%3);*/
-		// myBoard.hamming();
-		 //myBoard.manhattan();
-		
-		//StdOut.println(myBoard.neighbors());
-		//StdOut.println(myBoard.isSolvable());
-		 
-		
-		
+		int[][] unsolvable = { { 1, 2, 3 }, { 4, 5, 6 }, { 8, 7, 0 } };
 
-		// int[][] goal = makeAGoalArray(4);
-		// Board goalBoard = new Board(goal);
-		// StdOut.println(goalBoard);
-		// goalBoard.manhattan();
+		ArrayList<int[][]> arrays = new ArrayList<>();
+		arrays.add(values1);
+		arrays.add(values2);
+		arrays.add(values3);
+		arrays.add(difValues);
+		arrays.add(unsolvable);
+
+		for (int[][] i : arrays) {
+			Board myBoard = new Board(i);
+			StdOut.println("----------");
+			StdOut.println("Board: ");
+			StdOut.println(myBoard);
+			StdOut.println("Goal Board: ");
+			StdOut.println(new Board(myBoard.getGoal()));
+			StdOut.println("Manhattan Value: " + myBoard.manhattan());
+			StdOut.println("Hamming Value: " + myBoard.hamming());
+			StdOut.println();
+		}
 	}
-
 }
